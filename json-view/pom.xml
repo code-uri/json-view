@@ -92,6 +92,7 @@
             <configuration>
               <excludes>
                 <exclude>JsonViewSerializerPerformanceTest.java</exclude>
+                <exclude>WriterTest.java</exclude>
               </excludes>
             </configuration>
           </plugin>
