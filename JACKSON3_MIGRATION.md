@@ -26,26 +26,37 @@ This project has been upgraded to use Jackson 3.x. This upgrade includes signifi
 
 ## Spring Integration Requirements
 
-### ⚠️ Important: Spring Version Requirement
+### Spring Version Requirement
 
-**The `spring-json-view` module requires Spring Framework 6.x or later** to work with Jackson 3.x.
+**The `spring-json-view` module requires Spring Framework 7.0+** to work with Jackson 3.x.
 
-Spring Framework 4.x (used in this project's provided dependencies) does not support Jackson 3.x. Spring added Jackson 3.x support in Spring Framework 6.2+ (released in 2024).
+Spring Framework 7.0+ added Jackson 3.x support via the new `JacksonJsonHttpMessageConverter` class. Earlier versions (Spring 4.x-6.x) only support Jackson 2.x through `MappingJackson2HttpMessageConverter`.
+
+This project has been upgraded to use Spring 7.0.3.
 
 ### Migration Path for Spring Integration
 
 If you're using the `spring-json-view` module, you must:
 
-1. **Upgrade to Spring Framework 6.2 or later**
+1. **Upgrade to Spring Framework 7.0 or later**
    ```xml
    <dependency>
      <groupId>org.springframework</groupId>
      <artifactId>spring-webmvc</artifactId>
-     <version>6.2.0</version>
+     <version>7.0.3</version>
    </dependency>
    ```
 
-2. **Use Java 17 or later** (required by both Jackson 3.x and Spring 6.x)
+2. **Upgrade to Jakarta EE 9+** (Spring 7.x uses jakarta.servlet)
+   ```xml
+   <dependency>
+     <groupId>jakarta.servlet</groupId>
+     <artifactId>jakarta.servlet-api</artifactId>
+     <version>6.0.0</version>
+   </dependency>
+   ```
+
+3. **Use Java 17 or later** (required by Jackson 3.x and Spring 7.x)
 
 ### Alternative: Use json-view Module Only
 
