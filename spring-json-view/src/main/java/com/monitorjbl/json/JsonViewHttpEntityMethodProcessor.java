@@ -1,6 +1,7 @@
 package com.monitorjbl.json;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -25,6 +26,10 @@ public class JsonViewHttpEntityMethodProcessor extends HttpEntityMethodProcessor
       returnValue = ResponseEntity.status(re.getStatusCode())
           .headers(re.getHeaders())
           .body(json);
+    } else if(returnValue instanceof HttpEntity && JsonResultRetriever.hasValue()) {
+      JsonView json = JsonResultRetriever.retrieve();
+      HttpEntity he = (HttpEntity) returnValue;
+      returnValue = new HttpEntity<>(json, he.getHeaders());
     }
 
     super.handleReturnValue(returnValue, returnType, mavContainer, webRequest);

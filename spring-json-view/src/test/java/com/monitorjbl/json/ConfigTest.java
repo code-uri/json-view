@@ -218,6 +218,18 @@ public abstract class ConfigTest {
     assertNull(map.get("myobj").get("ignoredString"));
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testHttpEntitySupport() throws Exception {
+    HttpResponse response = Request.Get("http://localhost:" + port + "/httpEntity").execute().returnResponse();
+    Map<String, Object> map = new ObjectMapper().readValue(response.getEntity().getContent(), HashMap.class);
+
+    assertEquals(200, response.getStatusLine().getStatusCode());
+    assertEquals("httpEntity", map.get("str2"));
+    assertEquals("ignored", map.get("ignoredDirect"));
+    assertNull(map.get("int1"));
+  }
+
   @AfterClass
   public static void stop() {
     server.stop();

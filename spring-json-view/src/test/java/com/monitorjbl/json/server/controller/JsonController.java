@@ -10,6 +10,7 @@ import com.monitorjbl.json.model.TestObject;
 import com.monitorjbl.json.model.TestSubobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -203,5 +204,19 @@ public class JsonController {
     obj.setName("someName");
     obj.setIgnoredString("oeisjfs");
     return singletonMap("myobj", obj);
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/httpEntity")
+  @ResponseBody
+  public HttpEntity<TestObject> httpEntity() {
+    TestObject obj = new TestObject();
+    obj.setInt1(5);
+    obj.setIgnoredDirect("ignored");
+    obj.setStr2("httpEntity");
+    return new HttpEntity<>(json.use(JsonView.with(obj)
+        .onClass(TestObject.class, Match.match()
+            .exclude("int1")
+            .include("ignoredDirect")))
+        .returnValue());
   }
 }
