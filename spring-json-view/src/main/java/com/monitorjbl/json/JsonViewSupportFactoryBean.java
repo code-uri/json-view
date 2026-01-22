@@ -64,7 +64,9 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
     Iterator<HttpMessageConverter<?>> iter = copy.iterator();
     while(iter.hasNext()) {
       HttpMessageConverter<?> next = iter.next();
-      if (next.getClass().getSimpleName().startsWith("MappingJackson2")) {
+      // Remove both Jackson 2.x (MappingJackson2) and Jackson 3.x (JacksonJson) converters
+      if (next.getClass().getSimpleName().startsWith("MappingJackson2") 
+          || next.getClass().getSimpleName().startsWith("JacksonJson")) {
         log.debug("Removing {} as it interferes with us", next.getClass().getName());
         iter.remove();
       }
