@@ -30,7 +30,7 @@ This project has been upgraded to use Jackson 3.x. This upgrade includes signifi
 
 **The `spring-json-view` module requires Spring Framework 6.x or later** to work with Jackson 3.x.
 
-Spring Framework 4.x (used in this project's provided dependencies) does not support Jackson 3.x. Spring added Jackson 3.x support in October 2025 with Spring Framework 6.2+.
+Spring Framework 4.x (used in this project's provided dependencies) does not support Jackson 3.x. Spring added Jackson 3.x support in Spring Framework 6.2+ (released in 2024).
 
 ### Migration Path for Spring Integration
 
