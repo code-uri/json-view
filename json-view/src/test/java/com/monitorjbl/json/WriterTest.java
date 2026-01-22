@@ -1,7 +1,7 @@
 package com.monitorjbl.json;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
 import com.monitorjbl.json.JsonViewSerializer.JsonWriter;
 import com.monitorjbl.json.model.TestObject;
 import org.junit.Before;
@@ -28,13 +28,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(SerializerProvider.class)
+@PrepareForTest(SerializationContext.class)
 public class WriterTest {
   @Mock
   JsonGenerator jgen;
   @Mock
   JsonView result;
-  SerializerProvider serializerProvider;
+  SerializationContext serializerProvider;
 
   // has to be mocked with powermock due to final methods
   JsonWriter sut;
@@ -42,7 +42,7 @@ public class WriterTest {
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
-    serializerProvider = PowerMockito.mock(SerializerProvider.class);
+    serializerProvider = PowerMockito.mock(SerializationContext.class);
     sut = new JsonViewSerializer().new JsonWriter(serializerProvider, jgen, result);
   }
 

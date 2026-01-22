@@ -1,7 +1,7 @@
 package com.monitorjbl.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableMap;
 import com.monitorjbl.json.model.TestObject;
 import com.monitorjbl.json.model.TestSubobject;
@@ -50,7 +50,9 @@ public class JsonViewSerializerPerformanceTest {
     sut = new ObjectMapper();
     SimpleModule module = new SimpleModule();
     module.addSerializer(JsonView.class, serializer);
-    sut.registerModule(module);
+    sut = sut.rebuild()
+        .addModule(module)
+        .build();
   }
 
   @Test

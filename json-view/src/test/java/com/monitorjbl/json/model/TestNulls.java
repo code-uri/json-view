@@ -1,9 +1,8 @@
 package com.monitorjbl.json.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonSerialize(include = Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class TestNulls {
   private String val;
   private String otherVal;
