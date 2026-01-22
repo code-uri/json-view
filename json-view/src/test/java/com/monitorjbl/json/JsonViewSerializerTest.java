@@ -3,6 +3,8 @@ package com.monitorjbl.json;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.StringNode;
@@ -64,9 +66,10 @@ public class JsonViewSerializerTest {
   @Before
   public void setup() {
     this.serializer = new JsonViewSerializer();
-    sut = new ObjectMapper()
-        .rebuild()
+    sut = tools.jackson.databind.json.JsonMapper.builder()
         .addModule(new JsonViewModule(serializer))
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
         .build();
   }
 
@@ -1113,12 +1116,13 @@ public class JsonViewSerializerTest {
     Map<String, Object> obj = sut.readValue(serialized, NonReplacableKeyMap.class);
 
     List<String> keys = new ArrayList<>(obj.keySet());
-    assertEquals("sub", keys.get(0));
-    assertEquals("subWithIgnores", keys.get(1));
-    assertEquals("str1", keys.get(2));
-    assertEquals("str2", keys.get(3));
-    assertEquals("targetObject", keys.get(4));
-    assertEquals("date", keys.get(5));
+    // In Jackson 3.x, properties are sorted alphabetically by default
+    assertEquals("date", keys.get(0));
+    assertEquals("str1", keys.get(1));
+    assertEquals("str2", keys.get(2));
+    assertEquals("sub", keys.get(3));
+    assertEquals("subWithIgnores", keys.get(4));
+    assertEquals("targetObject", keys.get(5));
   }
 
   @Test

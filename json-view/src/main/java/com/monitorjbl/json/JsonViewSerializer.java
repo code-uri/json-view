@@ -361,10 +361,23 @@ public class JsonViewSerializer extends ValueSerializer<JsonView> {
         defaultInclude = serializerProvider.getConfig().getDefaultPropertyInclusion().getValueInclusion();
       }
       JsonInclude jsonInclude = getAnnotation(property, JsonInclude.class);
+      JsonInclude classJsonInclude = null;
+      if(cls != null) {
+        classJsonInclude = getAnnotation(cls, JsonInclude.class);
+      }
 
       // Make sure local annotations win over global ones
       if(jsonInclude != null && jsonInclude.value() == Include.NON_NULL && value == null) {
         return false;
+      }
+      
+      // Check class-level annotation
+      if(classJsonInclude != null) {
+        if(classJsonInclude.value() == Include.ALWAYS) {
+          return true;
+        } else if(classJsonInclude.value() == Include.NON_NULL && value == null) {
+          return false;
+        }
       }
 
       return value != null || defaultInclude == Include.ALWAYS;
