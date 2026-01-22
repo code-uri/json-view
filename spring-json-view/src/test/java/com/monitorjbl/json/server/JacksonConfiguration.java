@@ -1,26 +1,29 @@
 package com.monitorjbl.json.server;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Configures Jackson mapper for unit tests. Works with XML-based configuration
  * if it is included as a bean.
  */
 public class JacksonConfiguration {
-  private final ObjectMapper mapper;
+  private JsonMapper mapper;
 
-  public JacksonConfiguration(ObjectMapper mapper) {
-    this.mapper = mapper;
-    configureJackson(mapper);
+  public JacksonConfiguration(JsonMapper mapper) {
+    this.mapper = configureJackson(mapper);
   }
 
-  public static ObjectMapper configureJackson(ObjectMapper mapper) {
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  public static JsonMapper configureJackson(JsonMapper mapper) {
+    mapper = mapper.rebuild()
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .changeDefaultPropertyInclusion(
+            incl -> JsonInclude.Value.construct(Include.NON_NULL, Include.NON_NULL))
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .build();
     return mapper;
   }
 }

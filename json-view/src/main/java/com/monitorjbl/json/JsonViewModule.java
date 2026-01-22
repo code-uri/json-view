@@ -1,8 +1,8 @@
 package com.monitorjbl.json;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.Version;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.module.SimpleModule;
 
 public class JsonViewModule extends SimpleModule {
 
@@ -23,7 +23,7 @@ public class JsonViewModule extends SimpleModule {
     return this;
   }
 
-  public <E> JsonViewModule registerSerializer(Class<E> cls, JsonSerializer<E> serializer) {
+  public <E> JsonViewModule registerSerializer(Class<E> cls, ValueSerializer<E> serializer) {
     jsonView.registerCustomSerializer(cls, serializer);
     return this;
   }

@@ -10,12 +10,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.json.JsonMapper;
 
 public class JsonViewSupportFactoryBean implements InitializingBean {
   protected static final Logger log = LoggerFactory.getLogger(JsonViewSupportFactoryBean.class);
@@ -27,19 +27,19 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
   protected final DefaultView defaultView;
 
   public JsonViewSupportFactoryBean() {
-    this(new ObjectMapper());
+    this(JsonMapper.builder().build());
   }
 
-  public JsonViewSupportFactoryBean(ObjectMapper mapper) {
-    this(new JsonViewMessageConverter(mapper.copy()), DefaultView.create());
+  public JsonViewSupportFactoryBean(JsonMapper mapper) {
+    this(new JsonViewMessageConverter(mapper), DefaultView.create());
   }
 
   public JsonViewSupportFactoryBean(DefaultView defaultView) {
-    this(new JsonViewMessageConverter(new ObjectMapper()), defaultView);
+    this(new JsonViewMessageConverter(JsonMapper.builder().build()), defaultView);
   }
 
-  public JsonViewSupportFactoryBean(ObjectMapper mapper, DefaultView defaultView) {
-    this(new JsonViewMessageConverter(mapper.copy()), defaultView);
+  public JsonViewSupportFactoryBean(JsonMapper mapper, DefaultView defaultView) {
+    this(new JsonViewMessageConverter(mapper), defaultView);
   }
 
   private JsonViewSupportFactoryBean(JsonViewMessageConverter converter, DefaultView defaultView) {
@@ -64,7 +64,9 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
     Iterator<HttpMessageConverter<?>> iter = copy.iterator();
     while(iter.hasNext()) {
       HttpMessageConverter<?> next = iter.next();
-      if (next.getClass().getSimpleName().startsWith("MappingJackson2")) {
+      // Remove both Jackson 2.x (MappingJackson2) and Jackson 3.x (JacksonJson) converters
+      if (next.getClass().getSimpleName().startsWith("MappingJackson2") 
+          || next.getClass().getSimpleName().startsWith("JacksonJson")) {
         log.debug("Removing {} as it interferes with us", next.getClass().getName());
         iter.remove();
       }
@@ -77,7 +79,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
     converters.add(converter);
     for(HandlerMethodReturnValueHandler handler : handlers) {
       int index = handlers.indexOf(handler);
-      if(handler instanceof HttpEntityMethodProcessor) {
+      if(handler instanceof ResponseEntityReturnValueHandler) {
         handlers.set(index, new JsonViewHttpEntityMethodProcessor(converters));
       } else if(handler instanceof RequestResponseBodyMethodProcessor) {
         handlers.set(index, new JsonViewReturnValueHandler(converters, defaultView));
@@ -98,9 +100,9 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
    * </code>
    * @param <T> Type class of the serializer
    * @param cls {@link Class} the class type you want to add a custom serializer
-   * @param forType {@link JsonSerializer} the serializer you want to apply for that type
+   * @param forType {@link ValueSerializer} the serializer you want to apply for that type
    */
-  public <T> void registerCustomSerializer( Class<T> cls, JsonSerializer<T> forType )
+  public <T> void registerCustomSerializer( Class<T> cls, ValueSerializer<T> forType )
   {
       this.converter.registerCustomSerializer( cls, forType );
   }

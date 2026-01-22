@@ -1,6 +1,6 @@
 package com.monitorjbl.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.monitorjbl.json.server.ConfigServer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
