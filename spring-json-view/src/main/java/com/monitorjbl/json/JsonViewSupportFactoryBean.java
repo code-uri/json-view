@@ -10,7 +10,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
@@ -79,7 +79,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
     converters.add(converter);
     for(HandlerMethodReturnValueHandler handler : handlers) {
       int index = handlers.indexOf(handler);
-      if(handler instanceof HttpEntityMethodProcessor) {
+      if(handler instanceof ResponseEntityReturnValueHandler) {
         handlers.set(index, new JsonViewHttpEntityMethodProcessor(converters));
       } else if(handler instanceof RequestResponseBodyMethodProcessor) {
         handlers.set(index, new JsonViewReturnValueHandler(converters, defaultView));
