@@ -14,7 +14,6 @@ public class JacksonConfiguration {
   private JsonMapper mapper;
 
   public JacksonConfiguration(JsonMapper mapper) {
-    this.mapper = mapper;
     this.mapper = configureJackson(mapper);
   }
 
@@ -22,7 +21,7 @@ public class JacksonConfiguration {
     mapper = mapper.rebuild()
         .enable(SerializationFeature.INDENT_OUTPUT)
         .changeDefaultPropertyInclusion(
-            JsonInclude.Value.construct(Include.NON_NULL, Include.NON_NULL))
+            incl -> JsonInclude.Value.construct(Include.NON_NULL, Include.NON_NULL))
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .build();
     return mapper;
