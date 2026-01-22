@@ -1,37 +1,40 @@
 package com.monitorjbl.json;
 
 import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 
 import java.io.IOException;
 
-public class JsonViewMessageConverter extends MappingJackson2HttpMessageConverter {
+public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
 
   private JsonViewSerializer serializer = new JsonViewSerializer();
 
   public JsonViewMessageConverter() {
-    super();
-    SimpleModule module = new SimpleModule();
-    module.addSerializer(JsonView.class, this.serializer);
-    ObjectMapper defaultMapper = JsonMapper.builder()
-        .addModule(module)
-        .build();
-    setObjectMapper(defaultMapper);
+    super(createMapper(new JsonViewSerializer()));
   }
 
-  public JsonViewMessageConverter(ObjectMapper mapper) {
-    super();
+  public JsonViewMessageConverter(JsonMapper mapper) {
+    super(addModuleToMapper(mapper, new JsonViewSerializer()));
+  }
+
+  private static JsonMapper createMapper(JsonViewSerializer serializer) {
     SimpleModule module = new SimpleModule();
-    module.addSerializer(JsonView.class, this.serializer);
-    ObjectMapper newMapper = mapper.rebuild()
+    module.addSerializer(JsonView.class, serializer);
+    return JsonMapper.builder()
         .addModule(module)
         .build();
-    setObjectMapper(newMapper);
+  }
+
+  private static JsonMapper addModuleToMapper(JsonMapper mapper, JsonViewSerializer serializer) {
+    SimpleModule module = new SimpleModule();
+    module.addSerializer(JsonView.class, serializer);
+    return mapper.rebuild()
+        .addModule(module)
+        .build();
   }
 
   /**

@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
 import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class JsonViewSupportFactoryBean implements InitializingBean {
   protected static final Logger log = LoggerFactory.getLogger(JsonViewSupportFactoryBean.class);
@@ -27,18 +27,18 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
   protected final DefaultView defaultView;
 
   public JsonViewSupportFactoryBean() {
-    this(new ObjectMapper());
+    this(JsonMapper.builder().build());
   }
 
-  public JsonViewSupportFactoryBean(ObjectMapper mapper) {
+  public JsonViewSupportFactoryBean(JsonMapper mapper) {
     this(new JsonViewMessageConverter(mapper), DefaultView.create());
   }
 
   public JsonViewSupportFactoryBean(DefaultView defaultView) {
-    this(new JsonViewMessageConverter(new ObjectMapper()), defaultView);
+    this(new JsonViewMessageConverter(JsonMapper.builder().build()), defaultView);
   }
 
-  public JsonViewSupportFactoryBean(ObjectMapper mapper, DefaultView defaultView) {
+  public JsonViewSupportFactoryBean(JsonMapper mapper, DefaultView defaultView) {
     this(new JsonViewMessageConverter(mapper), defaultView);
   }
 
