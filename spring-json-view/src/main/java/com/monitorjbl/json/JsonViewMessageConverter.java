@@ -23,7 +23,7 @@ public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
 
   private static JsonMapper createMapper(JsonViewSerializer serializer) {
     SimpleModule module = new SimpleModule();
-    module.addSerializer(JsonView.class, serializer);
+    module.<JsonView>addSerializer(JsonView.class, serializer);
     return JsonMapper.builder()
         .addModule(module)
         .build();
@@ -31,7 +31,7 @@ public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
 
   private static JsonMapper addModuleToMapper(JsonMapper mapper, JsonViewSerializer serializer) {
     SimpleModule module = new SimpleModule();
-    module.addSerializer(JsonView.class, serializer);
+    module.<JsonView>addSerializer(JsonView.class, serializer);
     return mapper.rebuild()
         .addModule(module)
         .build();
