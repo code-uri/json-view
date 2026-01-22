@@ -22,6 +22,6 @@
   </bean>
 
 
-  <bean id="mapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
+  <bean id="mapper" class="com.monitorjbl.json.server.JsonMapperFactory" factory-method="createJsonMapper"/>
   <bean id="defaultView" class="com.monitorjbl.json.server.DefaultViewFactory" factory-method="instance"/>
 </beans>
