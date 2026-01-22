@@ -1,8 +1,9 @@
 package com.monitorjbl.json;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -15,10 +16,11 @@ public class JsonViewMessageConverter extends MappingJackson2HttpMessageConverte
 
   public JsonViewMessageConverter() {
     super();
-    ObjectMapper defaultMapper = new ObjectMapper();
     SimpleModule module = new SimpleModule();
     module.addSerializer(JsonView.class, this.serializer);
-    defaultMapper.registerModule(module);
+    ObjectMapper defaultMapper = JsonMapper.builder()
+        .addModule(module)
+        .build();
     setObjectMapper(defaultMapper);
   }
 
@@ -26,8 +28,10 @@ public class JsonViewMessageConverter extends MappingJackson2HttpMessageConverte
     super();
     SimpleModule module = new SimpleModule();
     module.addSerializer(JsonView.class, this.serializer);
-    mapper.registerModule(module);
-    setObjectMapper(mapper);
+    ObjectMapper newMapper = mapper.rebuild()
+        .addModule(module)
+        .build();
+    setObjectMapper(newMapper);
   }
 
   /**
@@ -42,9 +46,9 @@ public class JsonViewMessageConverter extends MappingJackson2HttpMessageConverte
    *
    * @param <T>     Type class of the serializer
    * @param class1  {@link Class} the class type you want to add a custom serializer
-   * @param forType {@link JsonSerializer} the serializer you want to apply for that type
+   * @param forType {@link ValueSerializer} the serializer you want to apply for that type
    */
-  public <T> void registerCustomSerializer(Class<T> class1, JsonSerializer<T> forType) {
+  public <T> void registerCustomSerializer(Class<T> class1, ValueSerializer<T> forType) {
     this.serializer.registerCustomSerializer(class1, forType);
   }
 

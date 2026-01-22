@@ -14,8 +14,8 @@ import org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodPro
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ObjectMapper;
 
 public class JsonViewSupportFactoryBean implements InitializingBean {
   protected static final Logger log = LoggerFactory.getLogger(JsonViewSupportFactoryBean.class);
@@ -31,7 +31,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
   }
 
   public JsonViewSupportFactoryBean(ObjectMapper mapper) {
-    this(new JsonViewMessageConverter(mapper.copy()), DefaultView.create());
+    this(new JsonViewMessageConverter(mapper), DefaultView.create());
   }
 
   public JsonViewSupportFactoryBean(DefaultView defaultView) {
@@ -39,7 +39,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
   }
 
   public JsonViewSupportFactoryBean(ObjectMapper mapper, DefaultView defaultView) {
-    this(new JsonViewMessageConverter(mapper.copy()), defaultView);
+    this(new JsonViewMessageConverter(mapper), defaultView);
   }
 
   private JsonViewSupportFactoryBean(JsonViewMessageConverter converter, DefaultView defaultView) {
@@ -98,9 +98,9 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
    * </code>
    * @param <T> Type class of the serializer
    * @param cls {@link Class} the class type you want to add a custom serializer
-   * @param forType {@link JsonSerializer} the serializer you want to apply for that type
+   * @param forType {@link ValueSerializer} the serializer you want to apply for that type
    */
-  public <T> void registerCustomSerializer( Class<T> cls, JsonSerializer<T> forType )
+  public <T> void registerCustomSerializer( Class<T> cls, ValueSerializer<T> forType )
   {
       this.converter.registerCustomSerializer( cls, forType );
   }
