@@ -6,7 +6,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
@@ -34,8 +34,8 @@ public class ProgramaticJsonViewResponseBodyAdvice implements ResponseBodyAdvice
 
   @Override
   public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-    // Only apply advice for Jackson converters
-    return AbstractJackson2HttpMessageConverter.class.isAssignableFrom(converterType);
+    // Only apply advice for Jackson converters (Jackson 3.x uses JacksonJson prefix)
+    return JacksonJsonHttpMessageConverter.class.isAssignableFrom(converterType);
   }
 
   @Override
