@@ -6,22 +6,36 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.json.JsonMapper;
 
-public class JsonViewSupportFactoryBean implements InitializingBean {
+/**
+ * Spring configuration for JsonView support using ResponseBodyAdvice.
+ * 
+ * <p>This configuration implements {@link WebMvcConfigurer} to customize
+ * message converters and register the {@link ProgramaticJsonViewResponseBodyAdvice}
+ * to intercept response bodies and apply JsonView transformations.
+ * 
+ * <p>Usage:
+ * <pre>
+ * &#64;Configuration
+ * public class MyConfig {
+ *   &#64;Bean
+ *   public JsonViewSupportFactoryBean jsonViewSupport() {
+ *     return new JsonViewSupportFactoryBean(mapper, defaultView);
+ *   }
+ * }
+ * </pre>
+ */
+@Configuration
+public class JsonViewSupportFactoryBean implements WebMvcConfigurer {
   protected static final Logger log = LoggerFactory.getLogger(JsonViewSupportFactoryBean.class);
-
-  @Autowired
-  protected RequestMappingHandlerAdapter adapter;
 
   protected final JsonViewMessageConverter converter;
   protected final DefaultView defaultView;
@@ -48,20 +62,25 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
-    List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>(adapter.getReturnValueHandlers());
-
-    List<HttpMessageConverter<?>> converters = removeJacksonConverters(adapter.getMessageConverters());
+  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    // Remove existing Jackson converters to avoid conflicts
+    removeJacksonConverters(converters);
+    
+    // Add our custom JsonViewMessageConverter
     converters.add(converter);
-    adapter.setMessageConverters(converters);
-
-    decorateHandlers(handlers);
-    adapter.setReturnValueHandlers(handlers);
   }
 
-  protected List<HttpMessageConverter<?>> removeJacksonConverters(List<HttpMessageConverter<?>> converters) {
-    List<HttpMessageConverter<?>> copy = new ArrayList<>(converters);
-    Iterator<HttpMessageConverter<?>> iter = copy.iterator();
+  /**
+   * Register the ResponseBodyAdvice that intercepts response bodies
+   * and applies JsonView transformations.
+   */
+  @Bean
+  public ResponseBodyAdvice<Object> programaticJsonViewResponseBodyAdvice() {
+    return new ProgramaticJsonViewResponseBodyAdvice(defaultView);
+  }
+
+  protected void removeJacksonConverters(List<HttpMessageConverter<?>> converters) {
+    Iterator<HttpMessageConverter<?>> iter = converters.iterator();
     while(iter.hasNext()) {
       HttpMessageConverter<?> next = iter.next();
       // Remove both Jackson 2.x (MappingJackson2) and Jackson 3.x (JacksonJson) converters
@@ -71,23 +90,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
         iter.remove();
       }
     }
-    return copy;
   }
-
-  protected void decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
-    List<HttpMessageConverter<?>> converters = new ArrayList<>(adapter.getMessageConverters());
-    converters.add(converter);
-    for(HandlerMethodReturnValueHandler handler : handlers) {
-      int index = handlers.indexOf(handler);
-      if(handler instanceof ResponseEntityReturnValueHandler) {
-        handlers.set(index, new JsonViewHttpEntityMethodProcessor(converters));
-      } else if(handler instanceof RequestResponseBodyMethodProcessor) {
-        handlers.set(index, new JsonViewReturnValueHandler(converters, defaultView));
-        break;
-      }
-    }
-  }
-
 
   /**
    * Registering custom serializer allows to the JSonView to deal with custom serializations for certains field types.<br>
