@@ -3,25 +3,43 @@ package com.monitorjbl.json;
 import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 
 import java.io.IOException;
 
-public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
+/**
+ * HTTP message converter that uses Jackson 3.x for JSON serialization/deserialization
+ * with support for JsonView objects.
+ * 
+ * <p>This converter delegates to a pre-configured JsonMapper that already has
+ * the JsonView serializer registered.
+ */
+public class JsonViewMessageConverter extends AbstractHttpMessageConverter<Object> {
 
-  private JsonViewSerializer serializer = new JsonViewSerializer();
+  private final JsonMapper mapper;
+  private JsonViewSerializer serializer;
 
   public JsonViewMessageConverter() {
-    super(createMapper(new JsonViewSerializer()));
+    super(MediaType.APPLICATION_JSON);
+    this.serializer = new JsonViewSerializer();
+    this.mapper = buildMapper(serializer);
   }
 
   public JsonViewMessageConverter(JsonMapper mapper) {
-    super(addModuleToMapper(mapper, new JsonViewSerializer()));
+    super(MediaType.APPLICATION_JSON);
+    this.mapper = addSerializerToMapper(mapper);
+    this.serializer = new JsonViewSerializer();
   }
 
-  private static JsonMapper createMapper(JsonViewSerializer serializer) {
+  /**
+   * Builds a mapper with the JsonView serializer already configured.
+   */
+  private static JsonMapper buildMapper(JsonViewSerializer serializer) {
     SimpleModule module = new SimpleModule();
     module.addSerializer(JsonView.class, serializer);
     return JsonMapper.builder()
@@ -29,12 +47,42 @@ public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
         .build();
   }
 
-  private static JsonMapper addModuleToMapper(JsonMapper mapper, JsonViewSerializer serializer) {
+  /**
+   * Adds the JsonView serializer to an existing mapper.
+   */
+  private static JsonMapper addSerializerToMapper(JsonMapper mapper) {
     SimpleModule module = new SimpleModule();
-    module.addSerializer(JsonView.class, serializer);
+    module.addSerializer(JsonView.class, new JsonViewSerializer());
     return mapper.rebuild()
         .addModule(module)
         .build();
+  }
+
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    // This converter handles any object
+    return true;
+  }
+
+  @Override
+  protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+    try {
+      return mapper.readValue(inputMessage.getBody(), clazz);
+    } catch (Exception ex) {
+      throw new HttpMessageNotReadableException("Could not read JSON", ex, inputMessage);
+    }
+  }
+
+  @Override
+  protected void writeInternal(Object object, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    try {
+      outputMessage.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+      byte[] bytes = mapper.writeValueAsBytes(object);
+      outputMessage.getBody().write(bytes);
+      outputMessage.getBody().flush();
+    } catch (Exception ex) {
+      throw new HttpMessageNotWritableException("Could not write JSON", ex);
+    }
   }
 
   /**
@@ -63,11 +111,6 @@ public class JsonViewMessageConverter extends JacksonJsonHttpMessageConverter {
    */
   public <T> void unregisterCustomSerializer(Class<T> class1) {
     this.serializer.unregisterCustomSerializer(class1);
-  }
-
-  @Override
-  protected void writeInternal(Object object, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-    super.writeInternal(object, outputMessage);
   }
 
 }

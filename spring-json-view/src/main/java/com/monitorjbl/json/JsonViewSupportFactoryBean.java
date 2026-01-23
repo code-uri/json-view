@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import tools.jackson.databind.ValueSerializer;
@@ -18,7 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Spring configuration for JsonView support using ResponseBodyAdvice.
  * 
- * <p>This configuration implements {@link WebMvcConfigurer} to customize
+ * <p>This configuration extends {@link WebMvcConfigurationSupport} to customize
  * message converters and register the {@link ProgramaticJsonViewResponseBodyAdvice}
  * to intercept response bodies and apply JsonView transformations.
  * 
@@ -34,7 +34,7 @@ import tools.jackson.databind.json.JsonMapper;
  * </pre>
  */
 @Configuration
-public class JsonViewSupportFactoryBean implements WebMvcConfigurer {
+public class JsonViewSupportFactoryBean extends WebMvcConfigurationSupport {
   protected static final Logger log = LoggerFactory.getLogger(JsonViewSupportFactoryBean.class);
 
   protected final JsonViewMessageConverter converter;
@@ -62,12 +62,16 @@ public class JsonViewSupportFactoryBean implements WebMvcConfigurer {
   }
 
   @Override
-  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+  protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     // Remove existing Jackson converters to avoid conflicts
-    removeJacksonConverters(converters);
+    List<HttpMessageConverter<?>> filteredConverters = removeJacksonConverters(converters);
     
-    // Add our custom JsonViewMessageConverter
+    // Clear and re-add converters with our custom JsonViewMessageConverter
+    converters.clear();
+    converters.addAll(filteredConverters);
     converters.add(converter);
+    
+    super.configureMessageConverters(converters);
   }
 
   /**
@@ -79,8 +83,9 @@ public class JsonViewSupportFactoryBean implements WebMvcConfigurer {
     return new ProgramaticJsonViewResponseBodyAdvice(defaultView);
   }
 
-  protected void removeJacksonConverters(List<HttpMessageConverter<?>> converters) {
-    Iterator<HttpMessageConverter<?>> iter = converters.iterator();
+  protected List<HttpMessageConverter<?>> removeJacksonConverters(List<HttpMessageConverter<?>> converters) {
+    List<HttpMessageConverter<?>> copy = new ArrayList<>(converters);
+    Iterator<HttpMessageConverter<?>> iter = copy.iterator();
     while(iter.hasNext()) {
       HttpMessageConverter<?> next = iter.next();
       // Remove both Jackson 2.x (MappingJackson2) and Jackson 3.x (JacksonJson) converters
@@ -90,6 +95,7 @@ public class JsonViewSupportFactoryBean implements WebMvcConfigurer {
         iter.remove();
       }
     }
+    return copy;
   }
 
   /**
